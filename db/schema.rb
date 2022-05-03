@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 2022_08_24_164532) do
+ActiveRecord::Schema.define(version: 2022_08_24_233535) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -972,6 +972,13 @@ ActiveRecord::Schema.define(version: 2022_08_24_164532) do
     t.boolean "by_moderator"
     t.index ["account_id"], name: "index_tombstones_on_account_id"
     t.index ["uri"], name: "index_tombstones_on_uri"
+  end
+
+  create_table "trends_statuses", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.float "score", default: 0.0, null: false
+    t.boolean "allowed", default: false, null: false
+    t.string "language"
   end
 
   create_table "unavailable_domains", force: :cascade do |t|
