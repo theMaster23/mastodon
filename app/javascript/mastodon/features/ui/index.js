@@ -110,6 +110,10 @@ const keyMap = {
 
 class SwitchingColumnsArea extends React.PureComponent {
 
+  static contextTypes = {
+    identity: PropTypes.object,
+  };
+
   static propTypes = {
     children: PropTypes.node,
     location: PropTypes.object,
@@ -145,12 +149,25 @@ class SwitchingColumnsArea extends React.PureComponent {
 
   render () {
     const { children, mobile } = this.props;
-    const redirect = mobile ? <Redirect from='/' to='/home' exact /> : <Redirect from='/' to='/getting-started' exact />;
+    const { signedIn } = this.context.identity;
+
+    let redirect;
+
+    if (signedIn) {
+      if (mobile) {
+        redirect = <Redirect from='/' to='/home' exact />;
+      } else {
+        redirect = <Redirect from='/' to='/getting-started' exact />;
+      }
+    } else {
+      redirect = <Redirect from='/' to='/explore' exact />;
+    }
 
     return (
       <ColumnsAreaContainer ref={this.setRef} singleColumn={mobile}>
         <WrappedSwitch>
           {redirect}
+
           <WrappedRoute path='/getting-started' component={GettingStarted} content={children} />
           <WrappedRoute path='/keyboard-shortcuts' component={KeyboardShortcuts} content={children} />
 
@@ -208,6 +225,7 @@ class UI extends React.PureComponent {
 
   static contextTypes = {
     router: PropTypes.object.isRequired,
+    identity: PropTypes.object.isRequired,
   };
 
   static propTypes = {
@@ -343,6 +361,8 @@ class UI extends React.PureComponent {
   }
 
   componentDidMount () {
+    const { signedIn } = this.context.identity;
+
     window.addEventListener('focus', this.handleWindowFocus, false);
     window.addEventListener('blur', this.handleWindowBlur, false);
     window.addEventListener('beforeunload', this.handleBeforeUnload, false);
@@ -359,16 +379,18 @@ class UI extends React.PureComponent {
     }
 
     // On first launch, redirect to the follow recommendations page
-    if (this.props.firstLaunch) {
+    if (signedIn && this.props.firstLaunch) {
       this.context.router.history.replace('/start');
       this.props.dispatch(closeOnboarding());
     }
 
-    this.props.dispatch(fetchMarkers());
-    this.props.dispatch(expandHomeTimeline());
-    this.props.dispatch(expandNotifications());
+    if (signedIn) {
+      this.props.dispatch(fetchMarkers());
+      this.props.dispatch(expandHomeTimeline());
+      this.props.dispatch(expandNotifications());
 
-    setTimeout(() => this.props.dispatch(fetchRules()), 3000);
+      setTimeout(() => this.props.dispatch(fetchRules()), 3000);
+    }
 
     this.hotkeys.__mousetrap__.stopCallback = (e, element) => {
       return ['TEXTAREA', 'SELECT', 'INPUT'].includes(element.tagName);

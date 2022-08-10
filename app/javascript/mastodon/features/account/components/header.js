@@ -130,6 +130,7 @@ class Header extends ImmutablePureComponent {
 
   render () {
     const { account, hidden, intl, domain } = this.props;
+    const { signedIn } = this.context.identity;
 
     if (!account) {
       return null;
@@ -160,12 +161,12 @@ class Header extends ImmutablePureComponent {
     }
 
     if (me !== account.get('id')) {
-      if (!account.get('relationship')) { // Wait until the relationship is loaded
+      if (signedIn && !account.get('relationship')) { // Wait until the relationship is loaded
         actionBtn = '';
       } else if (account.getIn(['relationship', 'requested'])) {
         actionBtn = <Button className={classNames('logo-button', { 'button--with-bell': bellBtn !== '' })} text={intl.formatMessage(messages.cancel_follow_request)} title={intl.formatMessage(messages.requested)} onClick={this.props.onFollow} />;
       } else if (!account.getIn(['relationship', 'blocking'])) {
-        actionBtn = <Button disabled={account.getIn(['relationship', 'blocked_by'])} className={classNames('logo-button', { 'button--destructive': account.getIn(['relationship', 'following']), 'button--with-bell': bellBtn !== '' })} text={intl.formatMessage(account.getIn(['relationship', 'following']) ? messages.unfollow : messages.follow)} onClick={this.props.onFollow} />;
+        actionBtn = <Button disabled={account.getIn(['relationship', 'blocked_by'])} className={classNames('logo-button', { 'button--destructive': account.getIn(['relationship', 'following']), 'button--with-bell': bellBtn !== '' })} text={intl.formatMessage(account.getIn(['relationship', 'following']) ? messages.unfollow : messages.follow)} onClick={signedIn ? this.props.onFollow : undefined} />;
       } else if (account.getIn(['relationship', 'blocking'])) {
         actionBtn = <Button className='logo-button' text={intl.formatMessage(messages.unblock, { name: account.get('username') })} onClick={this.props.onBlock} />;
       }
@@ -181,7 +182,7 @@ class Header extends ImmutablePureComponent {
       lockedIcon = <Icon id='lock' title={intl.formatMessage(messages.account_locked)} />;
     }
 
-    if (account.get('id') !== me) {
+    if (signedIn && account.get('id') !== me) {
       menu.push({ text: intl.formatMessage(messages.mention, { name: account.get('username') }), action: this.props.onMention });
       menu.push({ text: intl.formatMessage(messages.direct, { name: account.get('username') }), action: this.props.onDirect });
       menu.push(null);
@@ -204,7 +205,7 @@ class Header extends ImmutablePureComponent {
       menu.push({ text: intl.formatMessage(messages.mutes), to: '/mutes' });
       menu.push({ text: intl.formatMessage(messages.blocks), to: '/blocks' });
       menu.push({ text: intl.formatMessage(messages.domain_blocks), to: '/domain_blocks' });
-    } else {
+    } else if (signedIn) {
       if (account.getIn(['relationship', 'following'])) {
         if (!account.getIn(['relationship', 'muting'])) {
           if (account.getIn(['relationship', 'showing_reblogs'])) {
@@ -234,7 +235,7 @@ class Header extends ImmutablePureComponent {
       menu.push({ text: intl.formatMessage(messages.report, { name: account.get('username') }), action: this.props.onReport });
     }
 
-    if (account.get('acct') !== account.get('username')) {
+    if (signedIn && account.get('acct') !== account.get('username')) {
       const domain = account.get('acct').split('@')[1];
 
       menu.push(null);
@@ -293,7 +294,7 @@ class Header extends ImmutablePureComponent {
                   </React.Fragment>
                 )}
 
-                <DropdownMenuContainer items={menu} icon='ellipsis-v' size={24} direction='right' />
+                <DropdownMenuContainer disabled={menu.length === 0} items={menu} icon='ellipsis-v' size={24} direction='right' />
               </div>
             )}
           </div>
@@ -322,7 +323,7 @@ class Header extends ImmutablePureComponent {
                   </div>
                 )}
 
-                {account.get('id') !== me && <AccountNoteContainer account={account} />}
+                {(account.get('id') !== me && signedIn) && <AccountNoteContainer account={account} />}
 
                 {account.get('note').length > 0 && account.get('note') !== '<p></p>' && <div className='account__header__content translate' dangerouslySetInnerHTML={content} />}
 

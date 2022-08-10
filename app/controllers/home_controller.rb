@@ -2,7 +2,6 @@
 
 class HomeController < ApplicationController
   before_action :redirect_unauthenticated_to_permalinks!
-  before_action :authenticate_user!
   before_action :set_referrer_policy_header
 
   def index
@@ -14,17 +13,9 @@ class HomeController < ApplicationController
   def redirect_unauthenticated_to_permalinks!
     return if user_signed_in?
 
-    redirect_to(PermalinkRedirector.new(request.path).redirect_path || default_redirect_path)
-  end
+    redirect_path = PermalinkRedirector.new(request.path).redirect_path
 
-  def default_redirect_path
-    if request.path.start_with?('/web') || whitelist_mode?
-      new_user_session_path
-    elsif single_user_mode?
-      short_account_path(Account.local.without_suspended.where('id > 0').first)
-    else
-      about_path
-    end
+    redirect_to(redirect_path) if redirect_path.present?
   end
 
   def set_referrer_policy_header
