@@ -1,17 +1,5 @@
 version: '3'
 services:
-  db:
-    restart: always
-    image: postgres:14-alpine
-    shm_size: 256mb
-    networks:
-      - internal_network
-    healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'postgres']
-    volumes:
-      - ./postgres14:/var/lib/postgresql/data
-    environment:
-      - 'POSTGRES_HOST_AUTH_METHOD=trust'
 
   redis:
     restart: always
@@ -49,15 +37,16 @@ services:
     env_file: .env.production
     command: bash -c "rm -f /mastodon/tmp/pids/server.pid; bundle exec rails s -p 3000"
     networks:
-      - external_network
-      - internal_network
+      external_network:
+      internal_network:
+      myNetwork:
+        ipv4_address: 172.20.0.13
     healthcheck:
       # prettier-ignore
       test: ['CMD-SHELL', 'wget -q --spider --proxy=off localhost:3000/health || exit 1']
     ports:
       - '127.0.0.1:3000:3000'
     depends_on:
-      - db
       - redis
       # - es
     volumes:
@@ -70,15 +59,16 @@ services:
     env_file: .env.production
     command: node ./streaming
     networks:
-      - external_network
-      - internal_network
+      external_network:
+      internal_network:
+      myNetwork:
+        ipv4_address: 172.20.0.17
     healthcheck:
       # prettier-ignore
       test: ['CMD-SHELL', 'wget -q --spider --proxy=off localhost:4000/api/v1/streaming/health || exit 1']
     ports:
       - '127.0.0.1:4000:4000'
     depends_on:
-      - db
       - redis
 
   sidekiq:
@@ -88,7 +78,6 @@ services:
     env_file: .env.production
     command: bundle exec sidekiq
     depends_on:
-      - db
       - redis
     networks:
       - external_network
@@ -119,3 +108,5 @@ networks:
   external_network:
   internal_network:
     internal: true
+  myNetwork:
+    external: true

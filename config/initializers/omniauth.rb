@@ -70,7 +70,7 @@ Devise.setup do |config|
   # OpenID Connect Strategy
   if ENV['OIDC_ENABLED'] == 'true'
     oidc_options = {}
-    oidc_options[:display_name] = ENV['OIDC_DISPLAY_NAME'] || 'openid_connect' #OPTIONAL
+    oidc_options[:display_name] = ENV['OIDC_DISPLAY_NAME'] || 'Login or Sign up' #OPTIONAL
     oidc_options[:issuer] = ENV['OIDC_ISSUER'] if ENV['OIDC_ISSUER'] #NEED
     oidc_options[:discovery] = ENV['OIDC_DISCOVERY'] == 'true' if ENV['OIDC_DISCOVERY'] #OPTIONAL (default: false)
     oidc_options[:client_auth_method] =  ENV['OIDC_CLIENT_AUTH_METHOD'] if ENV['OIDC_CLIENT_AUTH_METHOD'] #OPTIONAL (default: basic)
