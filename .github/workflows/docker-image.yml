@@ -7,7 +7,7 @@ on:
     branches: [ "personal" ]
 
 env:
-  IMAGE_NAME: jarvis_server
+  IMAGE_NAME: mastodon
 
 jobs:
 
